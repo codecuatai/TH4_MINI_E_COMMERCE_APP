@@ -4,7 +4,11 @@ import '../../controllers/product_controller.dart';
 import '../../controllers/cart_controller.dart';
 import '../../models/product_model.dart';
 import '../../models/cart_item_model.dart';
+
 import 'package:intl/intl.dart';
+
+import '../checkout/checkout_screen.dart';
+import '../cart/cart_screen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
@@ -104,7 +108,10 @@ class ProductDetailScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.shopping_cart_outlined),
                   onPressed: () {
-                    // TODO: Navigate to cart screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CartScreen()),
+                    );
                   },
                 ),
                 if (cartController.items.isNotEmpty)
@@ -146,7 +153,6 @@ class ProductDetailScreen extends StatelessWidget {
                         backgroundColor: Colors.red,
                       ),
                       onPressed: () {
-                        // TODO: Buy now logic
                         _showAddToCartSheet(context, product, buyNow: true);
                       },
                       child: const Text('Mua ngay'),

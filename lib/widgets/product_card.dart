@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../models/product_model.dart';
 import 'package:intl/intl.dart';
+import '../views/product_detail/product_detail_screen.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -11,7 +13,12 @@ class ProductCard extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     return GestureDetector(
       onTap: () {
-        // TODO: Navigate to product detail screen with hero animation
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(product: product),
+          ),
+        );
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

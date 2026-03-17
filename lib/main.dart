@@ -8,6 +8,7 @@ import 'controllers/auth_controller.dart';
 import 'controllers/cart_controller.dart';
 import 'controllers/product_controller.dart';
 import 'views/auth/splash_screen.dart';
+import 'views/cart/cart_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.white,
         ),
         home: const SplashScreen(),
-        // TODO: Setup routes for all screens
+        routes: {'/cart': (context) => const CartScreen()},
       ),
     );
   }

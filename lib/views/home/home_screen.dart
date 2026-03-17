@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
       expandedHeight: 120,
 
       title: const Text(
-        'TH4 - Nhóm X',
+        'TH4 - Nhóm 6',
         style: TextStyle(
           color: Colors.black,
           fontSize: 18,
