@@ -14,6 +14,9 @@ class CartController extends ChangeNotifier {
     loadCart();
   }
 
+  // Getter cho số lượng item đang được chọn
+  int get totalCheckedItems => _items.where((e) => selectedItems[e.uniqueKey] == true).length;
+
   // Add item to cart
   void addToCart(CartItemModel item) {
     final index = _items.indexWhere(
@@ -28,6 +31,7 @@ class CartController extends ChangeNotifier {
       _items.add(item);
       selectedItems[item.uniqueKey] = true;
     }
+    _updateSelectAll();
     saveCart();
     notifyListeners();
   }
@@ -36,6 +40,7 @@ class CartController extends ChangeNotifier {
   void removeFromCart(String uniqueKey) {
     _items.removeWhere((e) => e.uniqueKey == uniqueKey);
     selectedItems.remove(uniqueKey);
+    _updateSelectAll();
     saveCart();
     notifyListeners();
   }
@@ -54,18 +59,18 @@ class CartController extends ChangeNotifier {
     }
   }
 
-  // Select item
-  void selectItem(String uniqueKey, bool selected) {
-    selectedItems[uniqueKey] = selected;
+  // Alias cho selectItem để khớp với CartScreen mới
+  void toggleItemSelection(String uniqueKey, bool? selected) {
+    selectedItems[uniqueKey] = selected ?? false;
     _updateSelectAll();
     notifyListeners();
   }
 
-  // Select all
-  void selectAllItems(bool value) {
-    selectAll = value;
+  // Alias cho selectAllItems để khớp với CartScreen mới
+  void toggleSelectAll(bool? value) {
+    selectAll = value ?? false;
     for (var item in _items) {
-      selectedItems[item.uniqueKey] = value;
+      selectedItems[item.uniqueKey] = selectAll;
     }
     notifyListeners();
   }
