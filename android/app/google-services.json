@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "197996581430",
+    "project_id": "th4-economic-app",
+    "storage_bucket": "th4-economic-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197996581430:android:0228cf7dd77aacf75a7e97",
+        "android_client_info": {
+          "package_name": "com.example.th4economicapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "197996581430-29jh668mqkd9qdn5n1fh5e48442eceqr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.th4economicapp",
+            "certificate_hash": "1cd3a18c88ee16617c18c9d43e03a1b010e3054f"
+          }
+        },
+        {
+          "client_id": "197996581430-88co3ik8j16r22o7ismgf7q5luv0l306.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-DOEO_QZPnOYjFPyZPB-Oj2LuvJhupsc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "197996581430-88co3ik8j16r22o7ismgf7q5luv0l306.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
