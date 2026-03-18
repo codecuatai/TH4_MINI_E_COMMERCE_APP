@@ -135,7 +135,11 @@ class CartScreen extends StatelessWidget {
                       // Navigate to checkout screen with selected items
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => CheckoutScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => CheckoutScreen(
+                            selectedItems: cartController.selectedCartItems,
+                          ),
+                        ),
                       );
                     }
                   }

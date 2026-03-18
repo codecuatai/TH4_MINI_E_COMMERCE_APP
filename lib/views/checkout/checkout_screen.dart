@@ -6,10 +6,13 @@ import '../../models/cart_item_model.dart';
 import 'package:intl/intl.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../checkout/checkout_screen.dart';
+import '../home/home_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({Key? key}) : super(key: key);
+  final List<CartItemModel> selectedItems;
+
+  const CheckoutScreen({Key? key, required this.selectedItems})
+    : super(key: key);
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -29,7 +32,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
-    final selectedItems = cartController.selectedCartItems;
+    final selectedItems = widget.selectedItems;
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán')),
@@ -101,7 +104,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  currencyFormat.format(cartController.totalPrice),
+                  currencyFormat.format(
+                    selectedItems.fold<double>(
+                      0,
+                      (s, e) => s + e.price * e.quantity,
+                    ),
+                  ),
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
@@ -150,18 +158,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             'createdAt': DateTime.now(),
                             'totalPrice': cartController.totalPrice,
                           };
-                          await FirestoreService().saveOrder(userId, orderData);
+                          final savedId = await FirestoreService().saveOrder(
+                            userId,
+                            orderData,
+                          );
                           cartController.removeSelectedItems();
                           showDialog(
                             context: context,
                             builder: (_) => AlertDialog(
                               title: const Text('Đặt hàng thành công!'),
-                              content: const Text('Cảm ơn bạn đã mua hàng.'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Cảm ơn bạn đã mua hàng.'),
+                                  const SizedBox(height: 8),
+                                  Text('Order ID: $savedId'),
+                                ],
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (_) => const HomeScreen(),
+                                      ),
+                                      (route) => false,
+                                    );
                                   },
                                   child: const Text('OK'),
                                 ),

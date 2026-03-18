@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/order_model.dart';
 import '../../services/firestore_service.dart';
@@ -40,6 +41,10 @@ class OrdersScreen extends StatelessWidget {
                       ),
                     )
                     .toList();
+                final currencyFormat = NumberFormat.currency(
+                  locale: 'vi_VN',
+                  symbol: 'đ',
+                );
                 return ListView.builder(
                   itemCount: orders.length,
                   itemBuilder: (context, index) {
@@ -51,9 +56,14 @@ class OrdersScreen extends StatelessWidget {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Tổng: ${order.totalPrice}'),
+                            Text(
+                              'Tổng: ${currencyFormat.format(order.totalPrice)}',
+                            ),
                             Text('Địa chỉ: ${order.address}'),
-                            Text('Ngày: ${order.createdAt}'),
+                            Text(
+                              'Ngày: ${DateFormat.yMd('vi_VN').add_Hm().format(order.createdAt)}',
+                            ),
+                            Text('Số mặt hàng: ${order.items.length}'),
                           ],
                         ),
                         trailing: Text(order.status),

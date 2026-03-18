@@ -4,13 +4,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Save order to Firestore
-  Future<void> saveOrder(String userId, Map<String, dynamic> orderData) async {
-    await _db
+  // Save order to Firestore and return created document id (for debugging)
+  Future<String> saveOrder(
+    String userId,
+    Map<String, dynamic> orderData,
+  ) async {
+    final ref = await _db
         .collection('orders')
         .doc(userId)
         .collection('user_orders')
         .add(orderData);
+    return ref.id;
   }
 
   // Fetch orders by status
