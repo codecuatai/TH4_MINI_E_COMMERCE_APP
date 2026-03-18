@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl = 'https://fakestoreapi.com/products';
+  // https://fakestoreapi.com/products
+  //https://dummyjson.com/products
 
   // Fetch products with pagination
   Future<List<dynamic>> fetchProducts({int page = 1, int limit = 10}) async {

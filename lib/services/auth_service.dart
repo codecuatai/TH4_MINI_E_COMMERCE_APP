@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  // final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Stream for auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -43,6 +45,32 @@ class AuthService {
       }
     } catch (e) {
       throw AuthException('Đăng nhập thất bại');
+    }
+  }
+
+  // Google Sign-In with Firebase
+  Future<User?> signInWithGoogle() async {
+    try {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        throw AuthException('Đăng nhập Google bị huỷ');
+      }
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      // Sign in to Firebase with the Google [UserCredential]
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+      return userCredential.user;
+    } catch (e) {
+      throw AuthException('Đăng nhập Google thất bại: ' + e.toString());
     }
   }
 
