@@ -258,15 +258,23 @@ class ProductDetailScreen extends StatelessWidget {
                               );
                               final cartController = context
                                   .read<CartController>();
-                              cartController.addToCart(cartItem);
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Đã thêm vào giỏ hàng!'),
-                                ),
-                              );
                               if (buyNow) {
-                                // TODO: Navigate to checkout screen
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        CheckoutScreen(buyNowItems: [cartItem]),
+                                  ),
+                                );
+                              } else {
+                                cartController.addToCart(cartItem);
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Đã thêm vào giỏ hàng!'),
+                                  ),
+                                );
                               }
                             },
                             child: Text(buyNow ? 'Mua ngay' : 'Xác nhận'),

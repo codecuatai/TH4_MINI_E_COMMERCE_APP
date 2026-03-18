@@ -9,7 +9,8 @@ import '../../controllers/auth_controller.dart';
 import '../checkout/checkout_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({Key? key}) : super(key: key);
+  final List<CartItemModel>? buyNowItems;
+  const CheckoutScreen({Key? key, this.buyNowItems}) : super(key: key);
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -29,7 +30,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
-    final selectedItems = cartController.selectedCartItems;
+    final selectedItems =
+        widget.buyNowItems ?? cartController.selectedCartItems;
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán')),

@@ -248,6 +248,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         IconButton(
+          icon: const Icon(Icons.receipt_long, color: Colors.black),
+          tooltip: 'Đơn hàng',
+          onPressed: () {
+            Navigator.pushNamed(context, '/orders');
+          },
+        ),
+        IconButton(
           icon: const Icon(Icons.logout, color: Colors.black),
           onPressed: () async {
             await context.read<AuthController>().logout();

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/cart_item_model.dart';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CartController extends ChangeNotifier {
   List<CartItemModel> _items = [];
@@ -15,7 +17,8 @@ class CartController extends ChangeNotifier {
   }
 
   // Getter cho số lượng item đang được chọn
-  int get totalCheckedItems => _items.where((e) => selectedItems[e.uniqueKey] == true).length;
+  int get totalCheckedItems =>
+      _items.where((e) => selectedItems[e.uniqueKey] == true).length;
 
   // Add item to cart
   void addToCart(CartItemModel item) {
@@ -33,6 +36,7 @@ class CartController extends ChangeNotifier {
     }
     _updateSelectAll();
     saveCart();
+    saveCartToFirebase();
     notifyListeners();
   }
 
@@ -42,6 +46,7 @@ class CartController extends ChangeNotifier {
     selectedItems.remove(uniqueKey);
     _updateSelectAll();
     saveCart();
+    saveCartToFirebase();
     notifyListeners();
   }
 
@@ -54,6 +59,7 @@ class CartController extends ChangeNotifier {
       } else {
         _items[index].quantity = quantity;
         saveCart();
+        saveCartToFirebase();
         notifyListeners();
       }
     }
@@ -99,6 +105,15 @@ class CartController extends ChangeNotifier {
     await prefs.setString('cart_selected', selectedJson);
   }
 
+  // Save cart to Firebase
+  Future<void> saveCartToFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await FirebaseFirestore.instance.collection('carts').doc(user.uid).set({
+      'items': _items.map((e) => e.toJson()).toList(),
+    });
+  }
+
   // Load cart from local storage
   Future<void> loadCart() async {
     final prefs = await SharedPreferences.getInstance();
@@ -121,6 +136,7 @@ class CartController extends ChangeNotifier {
     selectedItems.clear();
     selectAll = false;
     saveCart();
+    saveCartToFirebase();
     notifyListeners();
   }
 
@@ -130,6 +146,7 @@ class CartController extends ChangeNotifier {
     selectedItems.removeWhere((key, value) => value == true);
     _updateSelectAll();
     saveCart();
+    saveCartToFirebase();
     notifyListeners();
   }
 }
