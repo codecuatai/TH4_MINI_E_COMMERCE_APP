@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_controller.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../controllers/product_controller.dart';
 import '../../controllers/cart_controller.dart';
@@ -17,19 +19,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
+
+  int _currentBanner = 0;
+  String _searchQuery = '';
+  String _selectedCategory = 'All';
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // Load dữ liệu lần đầu
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductController>().fetchProducts();
     });
   }
 
   void _onScroll() {
+    if (_searchQuery.isNotEmpty) return;
+
     final productController = context.read<ProductController>();
 
     if (_scrollController.position.pixels >=
@@ -51,6 +60,22 @@ class _HomeScreenState extends State<HomeScreen> {
     final productController = context.watch<ProductController>();
     final cartController = context.watch<CartController>();
 
+    final banners = _buildBanners();
+
+    // ✅ FILTER LOGIC (search + category)
+    final filteredProducts = productController.products.where((product) {
+      final query = _searchQuery.toLowerCase();
+      final title = product.title.toLowerCase();
+
+      final matchSearch = title.contains(query);
+
+      final matchCategory = _selectedCategory == 'All'
+          ? true
+          : product.category.toLowerCase() == _selectedCategory.toLowerCase();
+
+      return matchSearch && matchCategory;
+    }).toList();
+
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
@@ -64,31 +89,58 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // ===== CAROUSEL =====
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: CarouselSlider(
-                    options: CarouselOptions(
-                      height: 160,
-                      autoPlay: true,
-                      enlargeCenterPage: true,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: CarouselSlider(
+                        carouselController: _carouselController,
+                        options: CarouselOptions(
+                          height: 160,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          onPageChanged: (index, reason) {
+                            setState(() {
+                              _currentBanner = index;
+                            });
+                          },
+                        ),
+                        items: banners,
+                      ),
                     ),
-                    items: _buildBanners(),
-                  ),
+                    AnimatedSmoothIndicator(
+                      activeIndex: _currentBanner,
+                      count: banners.length,
+                      effect: const ExpandingDotsEffect(
+                        dotHeight: 8,
+                        dotWidth: 8,
+                        activeDotColor: Color(0xFF667eea),
+                        dotColor: Colors.grey,
+                      ),
+                      onDotClicked: (index) {
+                        _carouselController.animateToPage(index);
+                      },
+                    ),
+                  ],
                 ),
               ),
 
-              // ===== CATEGORY =====
+              // ===== CATEGORY FILTER (ICON) =====
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: 90,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _buildCategory('Thời trang', Icons.checkroom),
-                      _buildCategory('Điện tử', Icons.devices),
-                      _buildCategory('Mỹ phẩm', Icons.face),
-                      _buildCategory('Gia dụng', Icons.kitchen),
-                      _buildCategory('Sách', Icons.menu_book),
+                      _buildCategory('Tất cả', Icons.category, 'All'),
+                      _buildCategory(
+                        'Thời trang',
+                        Icons.checkroom,
+                        "men's clothing",
+                      ),
+                      _buildCategory('Điện tử', Icons.devices, "electronics"),
+                      _buildCategory('Mỹ phẩm', Icons.face, "women's clothing"),
+                      _buildCategory('Gia dụng', Icons.kitchen, "jewelery"),
                     ],
                   ),
                 ),
@@ -105,31 +157,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // ===== PRODUCT GRID =====
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < productController.products.length) {
-                        final product = productController.products[index];
-                        return ProductCard(product: product);
-                      } else {
-                        return const LoadingShimmer();
-                      }
-                    },
-                    childCount: productController.hasMore
-                        ? productController.products.length + 2
-                        : productController.products.length,
+              // ===== EMPTY =====
+              if (filteredProducts.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('Không tìm thấy sản phẩm'),
+                    ),
                   ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
+                )
+              else
+                // ===== GRID =====
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  sliver: SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index < filteredProducts.length) {
+                          final product = filteredProducts[index];
+                          return ProductCard(product: product);
+                        } else {
+                          return const LoadingShimmer();
+                        }
+                      },
+                      childCount:
+                          productController.hasMore && _searchQuery.isEmpty
+                          ? filteredProducts.length + 2
+                          : filteredProducts.length,
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                        ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -144,7 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       elevation: 1,
       expandedHeight: 120,
-
       title: const Text(
         'TH4 - Nhóm 6',
         style: TextStyle(
@@ -153,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
-
       actions: [
         Stack(
           children: [
@@ -194,7 +257,6 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ],
-
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: Padding(
@@ -205,12 +267,16 @@ class _HomeScreenState extends State<HomeScreen> {
               prefixIcon: const Icon(Icons.search),
               filled: true,
               fillColor: Colors.grey[100],
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
                 borderSide: BorderSide.none,
               ),
             ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
           ),
         ),
       ),
@@ -220,9 +286,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ================= BANNERS =================
   List<Widget> _buildBanners() {
     final banners = [
-      'https://picsum.photos/400/200',
-      'https://picsum.photos/401/200',
-      'https://picsum.photos/402/200',
+      'https://images.unsplash.com/photo-1483985988355-763728e1935b',
+      'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519',
+      'https://images.unsplash.com/photo-1607082349566-187342175e2f',
     ];
 
     return banners
@@ -230,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
           (url) => ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              url,
+              '$url?auto=format&fit=crop&w=800&q=80',
               fit: BoxFit.cover,
               width: double.infinity,
             ),
@@ -240,16 +306,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ================= CATEGORY =================
-  Widget _buildCategory(String label, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(radius: 22, child: Icon(icon)),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12)),
-        ],
+  Widget _buildCategory(String label, IconData icon, String category) {
+    final isSelected = _selectedCategory == category;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCategory = category;
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: isSelected
+                  ? Colors.deepPurple
+                  : Colors.grey[200],
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? Colors.deepPurple : Colors.black,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
