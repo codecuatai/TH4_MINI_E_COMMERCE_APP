@@ -10,9 +10,15 @@ import '../home/home_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItemModel> selectedItems;
+  final String? voucherCode;
+  final double discountPercent;
 
-  const CheckoutScreen({Key? key, required this.selectedItems})
-    : super(key: key);
+  const CheckoutScreen({
+    Key? key,
+    required this.selectedItems,
+    this.voucherCode,
+    this.discountPercent = 0.0,
+  }) : super(key: key);
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -34,6 +40,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cartController = context.watch<CartController>();
     final selectedItems = widget.selectedItems;
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final rawTotal = selectedItems.fold<double>(
+      0,
+      (s, e) => s + e.price * e.quantity,
+    );
+    final discountAmount = (rawTotal * widget.discountPercent).roundToDouble();
+    final finalTotal = (rawTotal - discountAmount)
+        .clamp(0.0, double.infinity)
+        .toDouble();
     return Scaffold(
       appBar: AppBar(title: const Text('Thanh toán')),
       body: Padding(
@@ -103,17 +117,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   'Tổng cộng:',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  currencyFormat.format(
-                    selectedItems.fold<double>(
-                      0,
-                      (s, e) => s + e.price * e.quantity,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (widget.discountPercent > 0)
+                      Text(
+                        currencyFormat.format(rawTotal),
+                        style: const TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    Text(
+                      currencyFormat.format(finalTotal),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    if (widget.discountPercent > 0)
+                      Text(
+                        'Bạn tiết kiệm: ${currencyFormat.format(discountAmount)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.green,
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -156,7 +186,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             'paymentMethod': _paymentMethod,
                             'status': 'Chờ xác nhận',
                             'createdAt': DateTime.now(),
-                            'totalPrice': cartController.totalPrice,
+                            'totalPrice': finalTotal,
+                            'voucherCode': widget.voucherCode,
+                            'discountPercent': widget.discountPercent,
+                            'discountAmount': discountAmount,
                           };
                           final savedId = await FirestoreService().saveOrder(
                             userId,
