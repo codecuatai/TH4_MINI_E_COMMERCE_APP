@@ -9,6 +9,7 @@ import '../../controllers/cart_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/loading_shimmer.dart';
+import '../chat/chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -77,6 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+        onPressed: () {
+          Navigator.pushNamed(context, '/chat');
+        },
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {

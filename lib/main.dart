@@ -7,9 +7,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'controllers/auth_controller.dart';
 import 'controllers/cart_controller.dart';
 import 'controllers/product_controller.dart';
+import 'controllers/chat_controller.dart';
 import 'views/auth/splash_screen.dart';
 import 'views/cart/cart_screen.dart';
 import 'views/orders/orders_screen.dart';
+import 'views/chat/chat_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +40,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => CartController()),
         ChangeNotifierProvider(create: (_) => ProductController()),
+        ChangeNotifierProvider(create: (_) => ChatController()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -50,6 +53,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/cart': (context) => const CartScreen(),
           '/orders': (context) => const OrdersScreen(),
+          '/chat': (context) => const ChatScreen(),
         },
       ),
     );
